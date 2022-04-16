@@ -3,31 +3,31 @@ image: docker:20.10.11
 services:
   - docker:dind
 
-stages:
-  - deploy_global
-  - deploy_backend
-
-deploy_global:
-  stage: deploy_global
-  script:
-    - apk add --update --no-cache openssh openssh-client
-    - export SSH="ssh -l $SWARM_USER -p 22 -o StrictHostKeyChecking=no $SWARM_HOST"
-    - export BACKEND_IMAGE="$CI_REGISTRY/odin-o1/o1-backend/app:$CI_COMMIT_TAG"
-    - eval $(ssh-agent -s);
-    - echo "$SWARM_ID_RSA" | tr -d '\r' | ssh-add -
-    - $SSH "docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY"
-    - $SSH "docker pull $BACKEND_IMAGE"
-    - $SSH "docker pull $FRONTEND_IMAGE"
-    - docker context create remote --docker "host=ssh://$SWARM_USER@$SWARM_HOST"
-    - docker context use remote
-    - unset DOCKER_HOST
-    - docker stack deploy $SWARM_STACK_NAME --compose-file deploy-stack.yml
-  only:
-    refs:
-      - tags
-      - /^g[0-9\.]+$/
+before_script:
+  - apk add --update --no-cache openssh openssh-client
+  - export SSH="ssh -l $SWARM_USER -p 22 -o StrictHostKeyChecking=no $SWARM_HOST"
+  - eval $(ssh-agent -s);
+  - echo "$SWARM_ID_RSA" | tr -d '\r' | ssh-add -
+  - $SSH "docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY"
+  - echo $CI_PIPELINE_SOURCE
+  
+after_script:
+  - $SSH "yes | docker system prune -a"
 
 deploy_backend:
-  stage: deploy_backend
   script:
-    - echo "Hello!"
+    - $SSH "docker pull $BACKEND_IMAGE"
+    - $SSH "docker service update odin_backend --image=$BACKEND_IMAGE --replicas=2 --quiet"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "pipeline" && $CI_TYPE == "back"'
+      when: always
+    - when: never
+  
+deploy_frontend:
+  script:
+    - $SSH "docker pull $FRONTEND_IMAGE"
+    - $SSH "docker service update odin_frontend --image=$FRONTEND_IMAGE --replicas=1 --quiet"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "pipeline" && $CI_TYPE == "front"'
+      when: always
+    - when: never
