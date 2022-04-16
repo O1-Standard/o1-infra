@@ -1,0 +1,24 @@
+{
+  "python.pythonPath": "venv/bin/python",
+  "python.autoComplete.extraPaths": ["./src"],
+  "python.linting.enabled": true,
+  "python.linting.flake8Enabled": true,
+  "python.linting.pylintEnabled": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "prettier.resolveGlobalModules": true,
+  "git.ignoreLimitWarning": true,
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.python"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[html]": {
+    "editor.suggest.insertMode": "replace",
+    "editor.defaultFormatter": null
+  },
+  "python.analysis.extraPaths": [
+    "./src"
+  ]
+}

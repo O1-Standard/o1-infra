@@ -1,0 +1,151 @@
+version: "3.7"
+services:
+  frontend:
+    image: ${FRONTEND_IMAGE}
+    networks:
+      - "inner_network"
+    ports:
+      - 8071:80
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        order: start-first
+        failure_action: rollback
+        delay: 5s
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost/index.html"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  website:
+    image: ${BACKEND_IMAGE}
+    volumes:
+      - "/swarm/odin/media:/data/media"
+      - "/swarm/odin/static:/data/static"
+    environment:
+      - APP_MEDIA_ROOT=/data/media
+      - APP_STATIC_ROOT=/data/static
+      - FIREBASE_API_KEY_FILE=/var/run/secrets/FIREBASE_API_KEY_FILE
+      - JWT_SECRET_FILE=/var/run/secrets/JWT_SECRET_FILE
+      - POSTGRES_DB_FILE=/var/run/secrets/POSTGRES_DB_FILE
+      - POSTGRES_HOST_FILE=/var/run/secrets/POSTGRES_HOST_FILE
+      - POSTGRES_PASSWORD_FILE=/var/run/secrets/POSTGRES_PASSWORD_FILE
+      - POSTGRES_PORT_FILE=/var/run/secrets/POSTGRES_PORT_FILE
+      - POSTGRES_USER_FILE=/var/run/secrets/POSTGRES_USER_FILE
+      - REDIS_HOST_FILE=/var/run/secrets/REDIS_HOST_FILE
+      - REDIS_PORT_FILE=/var/run/secrets/REDIS_PORT_FILE
+      - SENTRY_DSN_FILE=/var/run/secrets/SENTRY_DSN_FILE
+      - UPAY_KEY_FILE=/var/run/secrets/UPAY_KEY_FILE
+      - UPAY_SECRET_FILE=/var/run/secrets/UPAY_SECRET_FILE
+      - WEB_CONCURRENCY=2
+    secrets:
+      - source: odin_database_host
+        target: POSTGRES_HOST_FILE
+      - source: odin_database_port
+        target: POSTGRES_PORT_FILE
+      - source: odin_database_name
+        target: POSTGRES_DB_FILE
+      - source: odin_database_username
+        target: POSTGRES_USER_FILE
+      - source: odin_database_password
+        target: POSTGRES_PASSWORD_FILE
+      - source: odin_redis_host
+        target: REDIS_HOST_FILE
+      - source: odin_redis_port
+        target: REDIS_PORT_FILE
+      - source: odin_jwt_token
+        target: JWT_SECRET_FILE
+      - source: odin_firebase_token
+        target: FIREBASE_API_KEY_FILE
+      - source: odin_upay_key
+        target: UPAY_KEY_FILE
+      - source: odin_upay_secret
+        target: UPAY_SECRET_FILE
+      - source: odin_sentry_dsn
+        target: SENTRY_DSN_FILE
+    networks:
+      - "inner_network"
+    ports:
+      - 8070:80
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        order: start-first
+        failure_action: rollback
+        delay: 5s
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1/admin/"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  redis:
+    image: redis:6-alpine
+    volumes:
+      - "/swarm/odin/redis:/data/"
+    networks:
+      - "inner_network"
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        order: start-first
+        failure_action: rollback
+        delay: 5s
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+secrets:
+  odin_database_host:
+    external: true
+  odin_database_port:
+    external: true
+  odin_database_name:
+    external: true
+  odin_database_username:
+    external: true
+  odin_database_password:
+    external: true
+  odin_redis_host:
+    external: true
+  odin_redis_port:
+    external: true
+  odin_jwt_token:
+    external: true
+  odin_firebase_token:
+    external: true
+  odin_upay_key:
+    external: true
+  odin_upay_secret:
+    external: true
+  odin_sentry_dsn:
+    external: true
+
+networks:
+  inner_network:
+    driver: overlay
+    attachable: true

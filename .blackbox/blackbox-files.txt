@@ -1,0 +1,3 @@
+infrastructure/credentials/common.ini
+infrastructure/credentials/id_rsa
+infrastructure/credentials/inventory.ini

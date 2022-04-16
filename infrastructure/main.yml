@@ -1,0 +1,8 @@
+---
+- hosts: swarm_master
+  tasks:
+    - include_vars: "variables/main.yml"
+    - include_tasks: "tasks/provide_secrets.yml"
+    - include_tasks: "tasks/provide_directories.yml"
+    - include_tasks: "tasks/provide_database.yml"
+    - include_tasks: "tasks/provide_nginx.yml"

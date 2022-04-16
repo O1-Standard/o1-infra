@@ -1,0 +1,89 @@
+{% if nginx_ssl_redirect %}
+server {
+  listen 80;
+  server_name {{nginx_server_name_alias}};
+
+  location / {
+    return 301 https://{{nginx_server_name}}$request_uri;
+  }
+}
+{% endif %}
+
+server {
+  {% if not nginx_ssl_redirect %}
+  listen 80;
+  {% endif %}
+  {% if nginx_ssl_enabled %}
+  listen 443 ssl http2;
+  {% endif %}
+  server_name {{nginx_server_name_alias}};
+  client_max_body_size 5M;
+
+  {% if nginx_ssl_enabled and nginx_ssl_certificate and nginx_ssl_certificate_key %}
+  ssl_certificate {{nginx_ssl_certificate}};
+  ssl_certificate_key {{nginx_ssl_certificate_key}};
+  include snippets/ssl-params.conf;
+  {% endif %}
+
+  {% if nginx_certbot_enabled %}
+  location ^~ /.well-known/acme-challenge/ {
+    allow all;
+    alias /var/www/acme-challenge/.well-known/acme-challenge/;
+  }
+  {% endif %}
+
+  location / {
+    proxy_pass http://0.0.0.0:{{fe_port}};
+  }
+
+  location /admin/ {
+    proxy_pass http://0.0.0.0:{{app_port}};
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Scheme $scheme;
+  }
+
+  location /docs {
+    proxy_pass http://0.0.0.0:{{app_port}};
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Scheme $scheme;
+  }
+
+  location /api {
+    proxy_pass http://0.0.0.0:{{app_port}};
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Scheme $scheme;
+  }
+
+  location /odin {
+    proxy_pass http://0.0.0.0:{{app_port}};
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Scheme $scheme;
+  }
+
+  location /static/ {
+    alias {{app_volume_path}}/static/;
+    expires max;
+  }
+
+  location /media/ {
+    alias {{app_volume_path}}/media/;
+    expires max;
+  }
+  
+  gzip on;
+  gzip_disable "msie6";
+  gzip_comp_level 5;
+  gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript application/javascript;
+}

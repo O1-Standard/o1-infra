@@ -1,0 +1,35 @@
+---
+stack_name: odin
+
+app_port: "8070"
+app_volume_path: "/swarm/{{ stack_name }}"
+
+fe_port: "8071"
+
+secrets:
+  database_host: "{{ lookup('ini', 'host section=database file=../credentials/common.ini') }}"
+  database_port: "{{ lookup('ini', 'port section=database file=../credentials/common.ini') }}"
+  database_name: "{{ lookup('ini', 'name section=database file=../credentials/common.ini') }}"
+  database_username: "{{ lookup('ini', 'username section=database file=../credentials/common.ini') }}"
+  database_password: "{{ lookup('ini', 'password section=database file=../credentials/common.ini') }}"
+  redis_host: "{{ lookup('ini', 'host section=redis file=../credentials/common.ini') }}"
+  redis_port: "{{ lookup('ini', 'port section=redis file=../credentials/common.ini') }}"
+  jwt_token: "{{ lookup('ini', 'token section=jwt file=../credentials/common.ini') }}"
+  firebase_token: "{{ lookup('ini', 'token section=firebase file=../credentials/common.ini') }}"
+  upay_key: "{{ lookup('ini', 'key section=upay file=../credentials/common.ini') }}"
+  upay_secret: "{{ lookup('ini', 'secret section=upay file=../credentials/common.ini') }}"
+  sentry_dsn: "{{ lookup('ini', 'dsn section=sentry file=../credentials/common.ini') }}"
+
+directory_root: "/swarm/{{ stack_name }}"
+directories:
+  - "media"
+  - "static"
+  - "redis"
+
+nginx_server_name: "o1.it-lab.su"
+nginx_server_name_alias: "{{nginx_server_name}} web.o1plus.ru client.o1plus.ru"
+nginx_ssl_redirect: true
+nginx_ssl_enabled: true
+nginx_ssl_certificate: "/etc/letsencrypt/live/{{ nginx_server_name }}/fullchain.pem"
+nginx_ssl_certificate_key: "/etc/letsencrypt/live/{{ nginx_server_name }}/privkey.pem"
+nginx_certbot_enabled: true

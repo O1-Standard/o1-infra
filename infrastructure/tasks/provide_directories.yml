@@ -1,0 +1,10 @@
+---
+- name: "Creating directories"
+  become: true
+  file:
+    path: "{{ directory_root }}/{{ directory }}"
+    state: "directory"
+    mode: "0775"
+  loop: "{{ directories }}"
+  loop_control:
+    loop_var: directory

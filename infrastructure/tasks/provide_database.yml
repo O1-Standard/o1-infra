@@ -1,0 +1,33 @@
+---
+- name: "Collect PostgreSQL information"
+  become: yes
+  become_user: postgres
+  vars:
+    ansible_ssh_pipelining: true
+  community.general.postgresql_info:
+    filter:
+      - "databases"
+  register: db_existing_info
+
+- name: "Create a new database"
+  become: yes
+  become_user: postgres
+  vars:
+    ansible_ssh_pipelining: true
+  community.general.postgresql_db:
+    name: "{{ secrets.database_name }}"
+    state: present
+  when: "secrets.database_name not in db_existing_info['databases']"
+
+- name: "Create user"
+  become: yes
+  become_user: postgres
+  vars:
+    ansible_ssh_pipelining: true
+  community.general.postgresql_user:
+    db: "{{ secrets.database_name }}"
+    name: "{{ secrets.database_username }}"
+    password: "{{ secrets.database_password }}"
+    priv: "ALL"
+    expires: infinity
+  when: "secrets.database_name not in db_existing_info['databases']"
