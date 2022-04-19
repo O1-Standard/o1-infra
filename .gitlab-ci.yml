@@ -45,3 +45,12 @@ deploy_frontend:
     - if: '$CI_PIPELINE_SOURCE == "pipeline" && $CI_TYPE == "front"'
       when: always
     - when: never
+  
+deploy_notificator:
+  script:
+    - $SSH "docker pull $NOTIFICATOR_IMAGE"
+    - $SSH "docker service update odin_frontend --image=$NOTIFICATOR_IMAGE --replicas=1 --quiet"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "pipeline" && $CI_TYPE == "notificator"'
+      when: always
+    - when: never
