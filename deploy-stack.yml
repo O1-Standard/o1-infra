@@ -42,6 +42,7 @@ services:
       - POSTGRES_USER_FILE=/var/run/secrets/POSTGRES_USER_FILE
       - REDIS_HOST_FILE=/var/run/secrets/REDIS_HOST_FILE
       - REDIS_PORT_FILE=/var/run/secrets/REDIS_PORT_FILE
+      - REDIS_STREAM_NAME_FILE=/var/run/secrets/REDIS_STREAM_NAME_FILE
       - SENTRY_DSN_FILE=/var/run/secrets/SENTRY_DSN_FILE
       - UPAY_KEY_FILE=/var/run/secrets/UPAY_KEY_FILE
       - UPAY_SECRET_FILE=/var/run/secrets/UPAY_SECRET_FILE
@@ -61,6 +62,8 @@ services:
         target: REDIS_HOST_FILE
       - source: odin_redis_port
         target: REDIS_PORT_FILE
+      - source: odin_redis_stream_name
+        target: REDIS_STREAM_NAME_FILE
       - source: odin_jwt_token
         target: JWT_SECRET_FILE
       - source: odin_firebase_token
@@ -77,7 +80,7 @@ services:
       - 8070:80
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 2
       update_config:
         order: start-first
         failure_action: rollback
@@ -93,6 +96,50 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  notificator:
+    image: ${NOTIFICATOR_IMAGE}
+    environment:
+      - REDIS_HOST_FILE=/var/run/secrets/REDIS_HOST_FILE
+      - REDIS_PORT_FILE=/var/run/secrets/REDIS_PORT_FILE
+      - REDIS_STREAM_NAME_FILE=/var/run/secrets/REDIS_STREAM_NAME_FILE
+      - REDIS_GROUP_NAME_FILE=/var/run/secrets/REDIS_GROUP_NAME_FILE
+      - REDIS_STREAM_HEALTH_IN_NAME_FILE=/var/run/secrets/REDIS_STREAM_HEALTH_IN_NAME_FILE
+      - REDIS_STREAM_HEALTH_OUT_NAME_FILE=/var/run/secrets/REDIS_STREAM_HEALTH_OUT_NAME_FILE
+      - UNISENDER_KEY_FILE=/var/run/secrets/UNISENDER_KEY_FILE
+      - UNISENDER_FROM_FILE=/var/run/secrets/UNISENDER_FROM_FILE
+      - APP_REPLICA_NAME=notificator-{{.Task.Name}}
+    secrets:
+      - source: odin_redis_host
+        target: REDIS_HOST_FILE
+      - source: odin_redis_port
+        target: REDIS_PORT_FILE
+      - source: odin_redis_stream_name
+        target: REDIS_STREAM_NAME_FILE
+      - source: odin_redis_group_name
+        target: REDIS_GROUP_NAME_FILE
+      - source: odin_redis_stream_health_in_name
+        target: REDIS_STREAM_HEALTH_IN_NAME_FILE
+      - source: odin_redis_stream_health_out_name
+        target: REDIS_STREAM_HEALTH_OUT_NAME_FILE
+      - source: odin_unisender_key
+        target: UNISENDER_KEY_FILE
+      - source: odin_unisender_from
+        target: UNISENDER_FROM_FILE
+    networks:
+      - "inner_network"
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        order: start-first
+        failure_action: rollback
+        delay: 5s
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
 
   redis:
     image: redis:6-alpine
@@ -134,6 +181,14 @@ secrets:
     external: true
   odin_redis_port:
     external: true
+  odin_redis_stream_name:
+    external: true
+  odin_redis_group_name:
+    external: true
+  odin_redis_stream_health_in_name:
+    external: true
+  odin_redis_stream_health_out_name:
+    external: true
   odin_jwt_token:
     external: true
   odin_firebase_token:
@@ -143,6 +198,10 @@ secrets:
   odin_upay_secret:
     external: true
   odin_sentry_dsn:
+    external: true
+  odin_unisender_key:
+    external: true
+  odin_unisender_from:
     external: true
 
 networks:

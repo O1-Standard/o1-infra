@@ -12,7 +12,21 @@ before_script:
   - echo $CI_PIPELINE_SOURCE
   
 after_script:
-  - $SSH "yes | docker system prune -a"
+  - $SSH "docker system prune -a -f"
+
+deploy_global:
+  script:
+    - $SSH "docker pull $BACKEND_IMAGE"
+    - $SSH "docker pull $FRONTEND_IMAGE"
+    - $SSH "docker pull $NOTIFICATOR_IMAGE"
+    - docker context create remote --docker "host=ssh://$SWARM_USER@$SWARM_HOST"
+    - docker context use remote
+    - unset DOCKER_HOST
+    - docker stack deploy odin --compose-file deploy-stack.yml
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+$/'
+      when: always
+    - when: never
 
 deploy_backend:
   script:
