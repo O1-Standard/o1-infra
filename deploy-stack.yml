@@ -20,7 +20,7 @@ services:
           memory: 256M
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost/index.html"]
-      interval: 1m30s
+      interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
@@ -46,6 +46,9 @@ services:
       - SENTRY_DSN_FILE=/var/run/secrets/SENTRY_DSN_FILE
       - UPAY_KEY_FILE=/var/run/secrets/UPAY_KEY_FILE
       - UPAY_SECRET_FILE=/var/run/secrets/UPAY_SECRET_FILE
+      - O1_API_URL_FILE=/var/run/secrets/O1_API_URL_FILE
+      - O1_PASSWORD_FILE=/var/run/secrets/O1_PASSWORD_FILE
+      - O1_USERNAME_FILE=/var/run/secrets/O1_USERNAME_FILE
       - WEB_CONCURRENCY=2
     secrets:
       - source: odin_database_host
@@ -74,6 +77,12 @@ services:
         target: UPAY_SECRET_FILE
       - source: odin_sentry_dsn
         target: SENTRY_DSN_FILE
+      - source: odin_o1_api_url
+        target: O1_API_URL_FILE
+      - source: odin_o1_password
+        target: O1_PASSWORD_FILE
+      - source: odin_o1_username
+        target: O1_USERNAME_FILE
     networks:
       - "inner_network"
     ports:
@@ -92,10 +101,10 @@ services:
           memory: 256M
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://127.0.0.1/admin/"]
-      interval: 1m30s
+      interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 30s
 
   notificator:
     image: ${NOTIFICATOR_IMAGE}
@@ -202,6 +211,12 @@ secrets:
   odin_unisender_key:
     external: true
   odin_unisender_from:
+    external: true
+  odin_o1_api_url:
+    external: true
+  odin_o1_username:
+    external: true
+  odin_o1_password:
     external: true
 
 networks:

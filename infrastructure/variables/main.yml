@@ -25,6 +25,9 @@ secrets:
   sentry_dsn: "{{ lookup('ini', 'dsn section=sentry file=../credentials/common.ini') }}"
   unisender_key: "{{ lookup('ini', 'key section=unisender file=../credentials/common.ini') }}"
   unisender_from: "{{ lookup('ini', 'from section=unisender file=../credentials/common.ini') }}"
+  o1_api_url: "{{ lookup('ini', 'url section=o1 file=../credentials/common.ini') }}"
+  o1_username: "{{ lookup('ini', 'username section=o1 file=../credentials/common.ini') }}"
+  o1_password: "{{ lookup('ini', 'password section=o1 file=../credentials/common.ini') }}"
 
 directory_root: "/swarm/{{ stack_name }}"
 directories:
