@@ -49,6 +49,7 @@ services:
       - O1_API_URL_FILE=/var/run/secrets/O1_API_URL_FILE
       - O1_PASSWORD_FILE=/var/run/secrets/O1_PASSWORD_FILE
       - O1_USERNAME_FILE=/var/run/secrets/O1_USERNAME_FILE
+      - O1_FEEDBACK_EMAIL_FILE=/var/run/secrets/O1_FEEDBACK_EMAIL_FILE
       - WEB_CONCURRENCY=2
     secrets:
       - source: odin_database_host
@@ -83,6 +84,8 @@ services:
         target: O1_PASSWORD_FILE
       - source: odin_o1_username
         target: O1_USERNAME_FILE
+      - source: odin_o1_feedback_email
+        target: O1_FEEDBACK_EMAIL_FILE
     networks:
       - "inner_network"
     ports:
@@ -109,14 +112,15 @@ services:
   notificator:
     image: ${NOTIFICATOR_IMAGE}
     environment:
+      - REDIS_GROUP_NAME_FILE=/var/run/secrets/REDIS_GROUP_NAME_FILE
       - REDIS_HOST_FILE=/var/run/secrets/REDIS_HOST_FILE
       - REDIS_PORT_FILE=/var/run/secrets/REDIS_PORT_FILE
-      - REDIS_STREAM_NAME_FILE=/var/run/secrets/REDIS_STREAM_NAME_FILE
-      - REDIS_GROUP_NAME_FILE=/var/run/secrets/REDIS_GROUP_NAME_FILE
       - REDIS_STREAM_HEALTH_IN_NAME_FILE=/var/run/secrets/REDIS_STREAM_HEALTH_IN_NAME_FILE
       - REDIS_STREAM_HEALTH_OUT_NAME_FILE=/var/run/secrets/REDIS_STREAM_HEALTH_OUT_NAME_FILE
-      - UNISENDER_KEY_FILE=/var/run/secrets/UNISENDER_KEY_FILE
+      - REDIS_STREAM_NAME_FILE=/var/run/secrets/REDIS_STREAM_NAME_FILE
+      - SMTP_HOST_FILE=/var/run/secrets/SMTP_HOST_FILE
       - UNISENDER_FROM_FILE=/var/run/secrets/UNISENDER_FROM_FILE
+      - UNISENDER_KEY_FILE=/var/run/secrets/UNISENDER_KEY_FILE
       - APP_REPLICA_NAME=notificator-{{.Task.Name}}
     secrets:
       - source: odin_redis_host
@@ -135,6 +139,8 @@ services:
         target: UNISENDER_KEY_FILE
       - source: odin_unisender_from
         target: UNISENDER_FROM_FILE
+      - source: odin_smtp_host
+        target: SMTP_HOST_FILE
     networks:
       - "inner_network"
     deploy:
@@ -217,6 +223,10 @@ secrets:
   odin_o1_username:
     external: true
   odin_o1_password:
+    external: true
+  odin_o1_feedback_email:
+    external: true
+  odin_smtp_host:
     external: true
 
 networks:
