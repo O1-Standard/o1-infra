@@ -29,6 +29,7 @@ secrets:
   o1_username: "{{ lookup('ini', 'username section=o1 file=../credentials/common.ini') }}"
   o1_password: "{{ lookup('ini', 'password section=o1 file=../credentials/common.ini') }}"
   o1_feedback_email: "{{ lookup('ini', 'feedback_email section=o1 file=../credentials/common.ini') }}"
+  o1_mocked_phones: "{{ lookup('ini', 'mocked_phones section=o1 file=../credentials/common.ini') }}"
   smtp_host: "{{ lookup('ini', 'host section=smtp file=../credentials/common.ini') }}"
 
 directory_root: "/swarm/{{ stack_name }}"

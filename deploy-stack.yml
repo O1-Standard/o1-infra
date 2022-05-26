@@ -50,6 +50,7 @@ services:
       - O1_PASSWORD_FILE=/var/run/secrets/O1_PASSWORD_FILE
       - O1_USERNAME_FILE=/var/run/secrets/O1_USERNAME_FILE
       - O1_FEEDBACK_EMAIL_FILE=/var/run/secrets/O1_FEEDBACK_EMAIL_FILE
+      - O1_MOCKED_PHONES=/var/run/secrets/O1_MOCKED_PHONES_FILE
       - WEB_CONCURRENCY=2
     secrets:
       - source: odin_database_host
@@ -86,6 +87,8 @@ services:
         target: O1_USERNAME_FILE
       - source: odin_o1_feedback_email
         target: O1_FEEDBACK_EMAIL_FILE
+      - source: o1_mocked_phones
+        target: O1_MOCKED_PHONES_FILE
     networks:
       - "inner_network"
     ports:
@@ -225,6 +228,8 @@ secrets:
   odin_o1_password:
     external: true
   odin_o1_feedback_email:
+    external: true
+  odin_o1_mocked_phones:
     external: true
   odin_smtp_host:
     external: true
