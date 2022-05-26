@@ -50,7 +50,7 @@ services:
       - O1_PASSWORD_FILE=/var/run/secrets/O1_PASSWORD_FILE
       - O1_USERNAME_FILE=/var/run/secrets/O1_USERNAME_FILE
       - O1_FEEDBACK_EMAIL_FILE=/var/run/secrets/O1_FEEDBACK_EMAIL_FILE
-      - O1_MOCKED_PHONES=/var/run/secrets/O1_MOCKED_PHONES_FILE
+      - O1_MOCKED_PHONES_FILE=/var/run/secrets/O1_MOCKED_PHONES_FILE
       - WEB_CONCURRENCY=2
     secrets:
       - source: odin_database_host
