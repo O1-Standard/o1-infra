@@ -68,10 +68,28 @@ deploy_frontend:
       when: always
     - when: never
 
+deploy_frontend_prod:
+  script:
+    - export SSH="ssh -l $SWARM_USER_PROD -p 22 -o StrictHostKeyChecking=no $SWARM_HOST_PROD"
+    - !reference [.deploy_frontend, script]
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "pipeline" && $CI_TYPE == "front"'
+      when: manual
+    - when: never
+
 deploy_notificator:
   script:
     - !reference [.deploy_notificator, script]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "pipeline" && $CI_TYPE == "notificator"'
       when: always
+    - when: never
+
+deploy_notificator_prod:
+  script:
+    - export SSH="ssh -l $SWARM_USER_PROD -p 22 -o StrictHostKeyChecking=no $SWARM_HOST_PROD"
+    - !reference [.deploy_notificator, script]
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "pipeline" && $CI_TYPE == "notificator"'
+      when: manual
     - when: never
