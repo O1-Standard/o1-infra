@@ -87,7 +87,7 @@ services:
         target: O1_USERNAME_FILE
       - source: odin_o1_feedback_email
         target: O1_FEEDBACK_EMAIL_FILE
-      - source: o1_mocked_phones
+      - source: odin_o1_mocked_phones
         target: O1_MOCKED_PHONES_FILE
     networks:
       - "inner_network"
