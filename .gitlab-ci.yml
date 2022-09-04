@@ -14,17 +14,20 @@ before_script:
 after_script:
   - $SSH "docker system prune -a -f"
 
-.deploy_backend: &deploy_backend
-  - $SSH "docker pull $BACKEND_IMAGE"
-  - $SSH "docker service update odin_backend --image=$BACKEND_IMAGE --replicas=2 --quiet"
+.deploy_backend:
+  script:
+    - $SSH "docker pull $BACKEND_IMAGE"
+    - $SSH "docker service update odin_backend --image=$BACKEND_IMAGE --replicas=2 --quiet"
 
-.deploy_frontend: &deploy_frontend
-  - $SSH "docker pull $FRONTEND_IMAGE"
-  - $SSH "docker service update odin_frontend --image=$FRONTEND_IMAGE --replicas=1 --quiet"
+.deploy_frontend:
+  script:
+    - $SSH "docker pull $FRONTEND_IMAGE"
+    - $SSH "docker service update odin_frontend --image=$FRONTEND_IMAGE --replicas=1 --quiet"
 
-.deploy_notificator: &deploy_notificator
-  - $SSH "docker pull $NOTIFICATOR_IMAGE"
-  - $SSH "docker service update odin_notificator --image=$NOTIFICATOR_IMAGE --replicas=1 --quiet"
+.deploy_notificator:
+  script:
+    - $SSH "docker pull $NOTIFICATOR_IMAGE"
+    - $SSH "docker service update odin_notificator --image=$NOTIFICATOR_IMAGE --replicas=1 --quiet"
 
 deploy_global:
   script:
@@ -42,21 +45,24 @@ deploy_global:
 
 deploy_backend:
   script:
-    - if [ "$CI_COMMIT_BRANCH" = "production" ]; then
-    - export SSH="ssh -l $SWARM_USER -p 22 -o StrictHostKeyChecking=no $SWARM_HOST_PROD"
-    - fi
-    - <<:*deploy_backend
+    - !reference [.deploy_backend, script]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "pipeline" && $CI_TYPE == "back"'
       when: always
     - when: never
 
+deploy_backend_prod:
+  script:
+    - export SSH="ssh -l $SWARM_USER_PROD -p 22 -o StrictHostKeyChecking=no $SWARM_HOST_PROD"
+    - !reference [.deploy_backend, script]
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "pipeline" && $CI_TYPE == "back"'
+      when: manual
+    - when: never
+
 deploy_frontend:
   script:
-    - if [ "$CI_COMMIT_BRANCH" = "production" ]; then
-    - export SSH="ssh -l $SWARM_USER -p 22 -o StrictHostKeyChecking=no $SWARM_HOST_PROD"
-    - fi
-    - <<:*deploy_frontend
+    - !reference [.deploy_frontend, script]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "pipeline" && $CI_TYPE == "front"'
       when: always
@@ -64,10 +70,7 @@ deploy_frontend:
 
 deploy_notificator:
   script:
-    - if [ "$CI_COMMIT_BRANCH" = "production" ]; then
-    - export SSH="ssh -l $SWARM_USER -p 22 -o StrictHostKeyChecking=no $SWARM_HOST_PROD"
-    - fi
-    - <<:*deploy_notificator
+    - !reference [.deploy_notificator, script]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "pipeline" && $CI_TYPE == "notificator"'
       when: always
