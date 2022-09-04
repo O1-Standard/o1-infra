@@ -10,9 +10,21 @@ before_script:
   - echo "$SWARM_ID_RSA" | tr -d '\r' | ssh-add -
   - $SSH "docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY"
   - echo $CI_PIPELINE_SOURCE
-  
+
 after_script:
   - $SSH "docker system prune -a -f"
+
+.deploy_backend: &deploy_backend
+  - $SSH "docker pull $BACKEND_IMAGE"
+  - $SSH "docker service update odin_backend --image=$BACKEND_IMAGE --replicas=2 --quiet"
+
+.deploy_frontend: &deploy_frontend
+  - $SSH "docker pull $FRONTEND_IMAGE"
+  - $SSH "docker service update odin_frontend --image=$FRONTEND_IMAGE --replicas=1 --quiet"
+
+.deploy_notificator: &deploy_notificator
+  - $SSH "docker pull $NOTIFICATOR_IMAGE"
+  - $SSH "docker service update odin_notificator --image=$NOTIFICATOR_IMAGE --replicas=1 --quiet"
 
 deploy_global:
   script:
@@ -30,26 +42,32 @@ deploy_global:
 
 deploy_backend:
   script:
-    - $SSH "docker pull $BACKEND_IMAGE"
-    - $SSH "docker service update odin_backend --image=$BACKEND_IMAGE --replicas=2 --quiet"
+    - if [ "$CI_COMMIT_BRANCH" = "production" ]; then
+    - export SSH="ssh -l $SWARM_USER -p 22 -o StrictHostKeyChecking=no $SWARM_HOST_PROD"
+    - fi
+    - <<:*deploy_backend
   rules:
     - if: '$CI_PIPELINE_SOURCE == "pipeline" && $CI_TYPE == "back"'
       when: always
     - when: never
-  
+
 deploy_frontend:
   script:
-    - $SSH "docker pull $FRONTEND_IMAGE"
-    - $SSH "docker service update odin_frontend --image=$FRONTEND_IMAGE --replicas=1 --quiet"
+    - if [ "$CI_COMMIT_BRANCH" = "production" ]; then
+    - export SSH="ssh -l $SWARM_USER -p 22 -o StrictHostKeyChecking=no $SWARM_HOST_PROD"
+    - fi
+    - <<:*deploy_frontend
   rules:
     - if: '$CI_PIPELINE_SOURCE == "pipeline" && $CI_TYPE == "front"'
       when: always
     - when: never
-  
+
 deploy_notificator:
   script:
-    - $SSH "docker pull $NOTIFICATOR_IMAGE"
-    - $SSH "docker service update odin_notificator --image=$NOTIFICATOR_IMAGE --replicas=1 --quiet"
+    - if [ "$CI_COMMIT_BRANCH" = "production" ]; then
+    - export SSH="ssh -l $SWARM_USER -p 22 -o StrictHostKeyChecking=no $SWARM_HOST_PROD"
+    - fi
+    - <<:*deploy_notificator
   rules:
     - if: '$CI_PIPELINE_SOURCE == "pipeline" && $CI_TYPE == "notificator"'
       when: always

@@ -6,3 +6,6 @@
     - include_tasks: "tasks/provide_directories.yml"
     - include_tasks: "tasks/provide_database.yml"
     - include_tasks: "tasks/provide_nginx.yml"
+
+  handlers:
+    - include_tasks: "handlers/main.yml"

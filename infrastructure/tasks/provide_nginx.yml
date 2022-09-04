@@ -7,4 +7,5 @@
     owner: www-data
     group: www-data
     mode: "0644"
-  notify: nginx_restart
+  notify:
+    - "Restart Nginx service"

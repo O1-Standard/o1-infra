@@ -38,10 +38,10 @@ directories:
   - "static"
   - "redis"
 
-nginx_server_name: "o1.it-lab.su"
-nginx_server_name_alias: "{{nginx_server_name}} web.o1plus.ru client.o1plus.ru"
-nginx_ssl_redirect: true
-nginx_ssl_enabled: true
+nginx_server_name: "web.o1plus.ru"
+nginx_server_name_alias: "{{nginx_server_name}} client.o1plus.ru"
+nginx_ssl_redirect: false
+nginx_ssl_enabled: false
 nginx_ssl_certificate: "/etc/letsencrypt/live/{{ nginx_server_name }}/fullchain.pem"
 nginx_ssl_certificate_key: "/etc/letsencrypt/live/{{ nginx_server_name }}/privkey.pem"
 nginx_certbot_enabled: true
