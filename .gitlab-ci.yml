@@ -17,7 +17,7 @@ after_script:
 .deploy_backend:
   script:
     - $SSH "docker pull $BACKEND_IMAGE"
-    - $SSH "docker service update odin_backend --image=$BACKEND_IMAGE --replicas=2 --quiet"
+    - $SSH "docker service update odin_backend --image=$BACKEND_IMAGE --replicas=4 --quiet"
 
 .deploy_frontend:
   script:
@@ -28,6 +28,11 @@ after_script:
   script:
     - $SSH "docker pull $NOTIFICATOR_IMAGE"
     - $SSH "docker service update odin_notificator --image=$NOTIFICATOR_IMAGE --replicas=1 --quiet"
+
+.deploy_cashier:
+  script:
+    - $SSH "docker pull $CASHIER_IMAGE"
+    - $SSH "docker service update odin_cashier --image=$CASHIER_IMAGE --replicas=2 --quiet"
 
 deploy_global:
   script:
@@ -91,5 +96,22 @@ deploy_notificator_prod:
     - !reference [.deploy_notificator, script]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "pipeline" && $CI_TYPE == "notificator"'
+      when: manual
+    - when: never
+
+deploy_cashier:
+  script:
+    - !reference [.deploy_cashier, script]
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "pipeline" && $CI_TYPE == "cashier"'
+      when: always
+    - when: never
+
+deploy_cashier_prod:
+  script:
+    - export SSH="ssh -l $SWARM_USER_PROD -p 22 -o StrictHostKeyChecking=no $SWARM_HOST_PROD"
+    - !reference [.deploy_cashier, script]
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "pipeline" && $CI_TYPE == "cashier"'
       when: manual
     - when: never

@@ -95,7 +95,7 @@ services:
       - 8070:80
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 4
       update_config:
         order: start-first
         failure_action: rollback
@@ -124,6 +124,8 @@ services:
       - SMTP_HOST_FILE=/var/run/secrets/SMTP_HOST_FILE
       - UNISENDER_FROM_FILE=/var/run/secrets/UNISENDER_FROM_FILE
       - UNISENDER_KEY_FILE=/var/run/secrets/UNISENDER_KEY_FILE
+      - UNISENDER_MAILFROM=/var/run/secrets/UNISENDER_MAILFROM_FILE
+      - UNISENDER_MAILLIST=/var/run/secrets/UNISENDER_MAILLIST_FILE
       - APP_REPLICA_NAME=notificator-{{.Task.Name}}
     secrets:
       - source: odin_redis_host
@@ -142,6 +144,10 @@ services:
         target: UNISENDER_KEY_FILE
       - source: odin_unisender_from
         target: UNISENDER_FROM_FILE
+      - source: odin_unisender_mailfrom
+        target: UNISENDER_MAILFROM
+      - source: odin_unisender_maillist
+        target: UNISENDER_MAILLIST
       - source: odin_smtp_host
         target: SMTP_HOST_FILE
     networks:
@@ -158,6 +164,68 @@ services:
           memory: 512M
         reservations:
           memory: 256M
+
+  cashier:
+    image: ${CASHIER_IMAGE}
+    networks:
+      - "inner_network"
+    ports:
+      - 8072:80
+    volumes:
+      - "/swarm/odin/cashier/media:/data/media"
+      - "/swarm/odin/cashier/static:/data/static"
+    environment:
+      - APP_ADMIN_PASSWORD_FILE=/var/run/secrets/APP_ADMIN_PASSWORD_FILE
+      - APP_ADMIN_USERNAME_FILE=/var/run/secrets/APP_ADMIN_USERNAME_FILE
+      - APP_MEDIA_ROOT=/data/media
+      - APP_STATIC_ROOT=/data/static
+      - JWT_SECRET_FILE=/var/run/secrets/JWT_SECRET_FILE
+      - POSTGRES_DB_FILE=/var/run/secrets/POSTGRES_DB_FILE
+      - POSTGRES_HOST_FILE=/var/run/secrets/POSTGRES_HOST_FILE
+      - POSTGRES_PORT_FILE=/var/run/secrets/POSTGRES_PORT_FILE
+      - POSTGRES_USER_FILE=/var/run/secrets/POSTGRES_USER_FILE
+      - POSTGRES_PASSWORD_FILE=/var/run/secrets/POSTGRES_PASSWORD_FILE
+      - UPAY_KEY_FILE=/var/run/secrets/UPAY_KEY_FILE
+      - UPAY_SECRET_FILE=/var/run/secrets/UPAY_SECRET_FILE
+    secrets:
+      - source: odin_cashier_admin_password
+        target: APP_ADMIN_PASSWORD_FILE
+      - source: odin_cashier_admin_username
+        target: APP_ADMIN_USERNAME_FILE
+      - source: odin_cashier_jwt_secret
+        target: JWT_SECRET_FILE
+      - source: odin_cashier_db_name
+        target: POSTGRES_DB_FILE
+      - source: odin_database_host
+        target: POSTGRES_HOST_FILE
+      - source: odin_database_port
+        target: POSTGRES_PORT_FILE
+      - source: odin_cashier_db_username
+        target: POSTGRES_USER_FILE
+      - source: odin_cashier_db_password
+        target: POSTGRES_PASSWORD_FILE
+      - source: odin_upay_key
+        target: UPAY_KEY_FILE
+      - source: odin_upay_secret
+        target: UPAY_SECRET_FILE
+    deploy:
+      mode: replicated
+      replicas: 2
+      update_config:
+        order: start-first
+        failure_action: rollback
+        delay: 5s
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1/cashier/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   redis:
     image: redis:6-alpine
@@ -221,6 +289,10 @@ secrets:
     external: true
   odin_unisender_from:
     external: true
+  odin_unisender_mailfrom:
+    external: true
+  odin_unisender_maillist:
+    external: true
   odin_o1_api_url:
     external: true
   odin_o1_username:
@@ -232,6 +304,18 @@ secrets:
   odin_o1_mocked_phones:
     external: true
   odin_smtp_host:
+    external: true
+  odin_cashier_admin_password:
+    external: true
+  odin_cashier_admin_username:
+    external: true
+  odin_cashier_db_name:
+    external: true
+  odin_cashier_db_password:
+    external: true
+  odin_cashier_db_username:
+    external: true
+  odin_cashier_jwt_secret:
     external: true
 
 networks:
