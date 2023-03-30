@@ -44,8 +44,6 @@ services:
       - REDIS_PORT_FILE=/var/run/secrets/REDIS_PORT_FILE
       - REDIS_STREAM_NAME_FILE=/var/run/secrets/REDIS_STREAM_NAME_FILE
       - SENTRY_DSN_FILE=/var/run/secrets/SENTRY_DSN_FILE
-      - UPAY_KEY_FILE=/var/run/secrets/UPAY_KEY_FILE
-      - UPAY_SECRET_FILE=/var/run/secrets/UPAY_SECRET_FILE
       - O1_API_URL_FILE=/var/run/secrets/O1_API_URL_FILE
       - O1_PASSWORD_FILE=/var/run/secrets/O1_PASSWORD_FILE
       - O1_USERNAME_FILE=/var/run/secrets/O1_USERNAME_FILE
@@ -73,10 +71,6 @@ services:
         target: JWT_SECRET_FILE
       - source: odin_firebase_token
         target: FIREBASE_API_KEY_FILE
-      - source: odin_upay_key
-        target: UPAY_KEY_FILE
-      - source: odin_upay_secret
-        target: UPAY_SECRET_FILE
       - source: odin_sentry_dsn
         target: SENTRY_DSN_FILE
       - source: odin_o1_api_url
@@ -115,6 +109,8 @@ services:
   notificator:
     image: ${NOTIFICATOR_IMAGE}
     environment:
+      - ONE_SIGNAL_APP_ID_FILE=/var/run/secrets/ONE_SIGNAL_APP_ID_FILE
+      - ONE_SIGNAL_REST_ID_FILE=/var/run/secrets/ONE_SIGNAL_REST_ID_FILE
       - REDIS_GROUP_NAME_FILE=/var/run/secrets/REDIS_GROUP_NAME_FILE
       - REDIS_HOST_FILE=/var/run/secrets/REDIS_HOST_FILE
       - REDIS_PORT_FILE=/var/run/secrets/REDIS_PORT_FILE
@@ -124,7 +120,7 @@ services:
       - SMTP_HOST_FILE=/var/run/secrets/SMTP_HOST_FILE
       - UNISENDER_FROM_FILE=/var/run/secrets/UNISENDER_FROM_FILE
       - UNISENDER_KEY_FILE=/var/run/secrets/UNISENDER_KEY_FILE
-      - UNISENDER_MAILFROM=/var/run/secrets/UNISENDER_MAILFROM_FILE
+      - UNISENDER_MAILFROM_FILE=/var/run/secrets/UNISENDER_MAILFROM_FILE
       - UNISENDER_MAILLIST=/var/run/secrets/UNISENDER_MAILLIST_FILE
       - APP_REPLICA_NAME=notificator-{{.Task.Name}}
     secrets:
@@ -145,11 +141,15 @@ services:
       - source: odin_unisender_from
         target: UNISENDER_FROM_FILE
       - source: odin_unisender_mailfrom
-        target: UNISENDER_MAILFROM
+        target: UNISENDER_MAILFROM_FILE
       - source: odin_unisender_maillist
-        target: UNISENDER_MAILLIST
+        target: UNISENDER_MAILLIST_FILE
       - source: odin_smtp_host
         target: SMTP_HOST_FILE
+      - source: odin_onesignal_app_id
+        target: ONE_SIGNAL_APP_ID_FILE
+      - source: odin_onesignal_rest_id
+        target: ONE_SIGNAL_REST_ID_FILE
     networks:
       - "inner_network"
     deploy:
@@ -316,6 +316,10 @@ secrets:
   odin_cashier_db_username:
     external: true
   odin_cashier_jwt_secret:
+    external: true
+  odin_onesignal_app_id:
+    external: true
+  odin_onesignal_rest_id:
     external: true
 
 networks:
